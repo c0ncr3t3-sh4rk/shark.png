@@ -84,7 +84,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_MaskInteraction: 0
   m_Sprite: {fileID: 136136706496880021, guid: 9eccc02c6a2f2c9958413c6a1f8f9cf0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -194,8 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VidaEnemigo
   vidaMaxima: 1
-  sangre: {fileID: 8619229459975987143, guid: 05c3d73b53c809341a31aa690263e138, type: 3}
-  sangreMuerte: {fileID: 8619229459975987143, guid: 05c3d73b53c809341a31aa690263e138, type: 3}
+  efectoMuerte: {fileID: 0}
   salaAsignada: {fileID: 0}
   costePresupuesto: 0
   prefabOrigen: {fileID: 0}

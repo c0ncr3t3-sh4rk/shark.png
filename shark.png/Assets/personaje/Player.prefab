@@ -195,7 +195,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 11
   m_MaskInteraction: 0
   m_Sprite: {fileID: 8861480726252175340, guid: cbfa0ea14ac01d843a4684f8c51bc41a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -438,7 +438,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   prefabEfectoCorte: {fileID: 110048675258960550, guid: b80bb28a9781a752383992ea049fcdce, type: 3}
-  prefabSangreChorro: {fileID: 6675009432846508976, guid: 84d4a7b158e43edecbea83a028c31b72, type: 3}
+  prefabSangre: {fileID: 0}
 --- !u!114 &4603606583405158769
 MonoBehaviour:
   m_ObjectHideFlags: 0

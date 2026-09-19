@@ -31,8 +31,9 @@ public class AtaqueTiburon : MonoBehaviour
     public UnityEvent onMuerteBapuleo;
 
     [Header("FX Gore / Sangre")]
-    [SerializeField] private GameObject prefabEfectoCorte;  // Prefab del Tajo/Garra
-    [SerializeField] private GameObject prefabSangre;      // Prefab de las partículas de sangre
+    [SerializeField] private GameObject prefabEfectoCorte;
+    [SerializeField] private GameObject prefabSangre;
+    [SerializeField] private GameObject camara;
 
     private SpriteRenderer spriteRenderer;
     public static bool estaOcupado = false;
@@ -278,6 +279,8 @@ public class AtaqueTiburon : MonoBehaviour
                 seguidor.Inicializar(objetivo);
             }
         }
+
+        camara.GetComponent<EfectosCamara>().AplicarImpacto();
     }
 
     private void AgarrarPez(IAgarrable agarrable, GameObject go)
