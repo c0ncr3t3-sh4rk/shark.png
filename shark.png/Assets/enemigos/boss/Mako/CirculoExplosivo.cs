@@ -3,33 +3,60 @@ using UnityEngine;
 
 public class CirculoExplosivo : MonoBehaviour
 {
-    [Header("Explosión")]
-    public float tExplosion = 1.2f;
-    public float radio = 2.5f;
+    [Header("Configuración Explosión")]
+    public float tiempoHastaExplotar = 1.2f;
+    public float duracionExplosion = 0.2f;
+    public float dano = 2f;
+    public GameObject colliderDano; // Objeto que contiene el Collider2D en modo Trigger
 
-    [Header("Referencias Visuales")]
-    public SpriteRenderer spriteRenderer;
-    public GameObject efectoExplosion;
-    public GameObject dano;
+    [Header("Efectos Visuales")]
+    private SpriteRenderer spriteRenderer;
+    public Color colorInicial = Color.white;
+    public Color colorFinal = Color.red;
+
+    private void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = colorInicial;
+        }
+
+        if (colliderDano != null)
+        {
+            colliderDano.SetActive(false);
+        }
+    }
 
     private void Start()
     {
-        StartCoroutine(Explotar());
+        StartCoroutine(RutinaExplotar());
     }
 
-    private IEnumerator Explotar()
+    private IEnumerator RutinaExplotar()
     {
-        float S = UnityEngine.Random.value;
-        yield return new WaitForSeconds(1f + S);
-        
-        spriteRenderer.color = Color.red;
-        yield return new WaitForSeconds(0.5f);
+        float t = 0f;
 
-        // efecto, ya lo pondre 
-        if (efectoExplosion != null)
+        while (t < tiempoHastaExplotar)
         {
-            Instantiate(efectoExplosion, transform.position, Quaternion.identity);
+            t += Time.deltaTime * Random.Range(0.9f, 1.1f);
+            float progreso = t / tiempoHastaExplotar;
+
+            yield return null;
         }
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = colorFinal;
+        }
+
+        if (colliderDano != null)
+        {
+            colliderDano.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(duracionExplosion);
+
 
         Destroy(gameObject);
     }
@@ -37,6 +64,9 @@ public class CirculoExplosivo : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, radio);
+        if (colliderDano != null && colliderDano.TryGetComponent(out CircleCollider2D col))
+        {
+            Gizmos.DrawWireSphere(colliderDano.transform.position, col.radius * colliderDano.transform.lossyScale.x);
+        }
     }
 }

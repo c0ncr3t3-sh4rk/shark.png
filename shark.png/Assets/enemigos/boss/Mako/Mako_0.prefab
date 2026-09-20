@@ -285,14 +285,17 @@ MonoBehaviour:
   danoSierra: 1
   tiempoSierra: 2
   velocidadRotacionSierra: 3240
+  prefabCirculoExplosivo: {fileID: 2089394544182250045, guid: 62c9d0e7044face8c82083b28b533ebb, type: 3}
+  cantidadCirculosSierra: 12
   velocidadSalida: 30
   lineaTelegrafiado: {fileID: 800951621364244698}
   estadoActual: 0
-  faseActual: 1
+  faseActual: 2
   tiempoFrenazo: 1
   jugador: {fileID: 0}
   colisionPared: {fileID: 5902232532966361156}
   Hijos:
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
 --- !u!70 &808261494824874098
@@ -374,7 +377,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: e021c53378404631789954a2ba16a8fb, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -395,7 +398,7 @@ LineRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 50
   m_MaskInteraction: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}

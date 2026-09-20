@@ -20,6 +20,7 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
     public float vidaActual;
 
     [Header("Embestida Larga")]
+    public GameObject hitboxBoca;
     public float velocidadEmbestidaLarga = 25f;
     public float danoEmbestidaLarga = 2f;
     private int nEmbestidas = 0;
@@ -30,9 +31,12 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
 
     [Header("Sierra")]
     public GameObject hitboxSierra;
-    public float danoSierra = 1f;
     public float tiempoSierra = 2f;
     public float velocidadRotacionSierra = 3240f;
+    
+    [Header("Ataque Sierra - Fase 2+")]
+    public GameObject prefabCirculoExplosivo;
+    public int cantidadCirculosSierra = 6;
 
     [Header("Salida de Pantalla")]
     public float velocidadSalida = 30f;
@@ -78,6 +82,7 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
         vidaActual = vidaMaxima;
 
         if (hitboxSierra != null) hitboxSierra.SetActive(false);
+        if (hitboxBoca != null) hitboxBoca.SetActive(false);
 
         bossUtils = GetComponentInParent<BossUtils>();
         if (bossUtils != null)
@@ -111,12 +116,12 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
             float rand = UnityEngine.Random.value;
             float distancia = Vector2.Distance(transform.position, jugador.position);
 
-            if (faseActual == 1) //FASE UNO <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+            if (faseActual == 1) // FASE UNO <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
             {
                 // --- ATAQUE SIERRA (Cerca del jugador) ---
                 if (distancia < 4f && rand < 0.6f)
                 {
-                    nMismoAtaque = 0; // Reiniciamos el contador si hace sierra
+                    nMismoAtaque = 0; // Reiniciamos el contador si hace sierra en Fase 1
                     yield return StartCoroutine(AtaqueSierra());
                 }
                 // --- EMBESTIDA EXPLOSIVA ---
@@ -127,8 +132,8 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
                     else 
                         nMismoAtaque = 1;
 
-                    // Si se ha repetido demasiado, forzamos la Embestida Larga
-                    if (nMismoAtaque > 2)
+                    // Máximo se repite 1 vez (2 ejecuciones seguidas)
+                    if (nMismoAtaque > 1)
                     {
                         nMismoAtaque = 1;
                         yield return StartCoroutine(AtaqueEmbestidaLarga());
@@ -146,8 +151,8 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
                     else 
                         nMismoAtaque = 1;
 
-                    // Si se ha repetido demasiado, forzamos la Embestida Explosiva
-                    if (nMismoAtaque > 2)
+                    // Máximo se repite 1 vez (2 ejecuciones seguidas)
+                    if (nMismoAtaque > 1)
                     {
                         nMismoAtaque = 1;
                         yield return StartCoroutine(AtaqueEmbestidaexplosiva());
@@ -160,22 +165,35 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
             }
             else if (faseActual == 2) // FASE DOS <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
             {
-                // --- ATAQUE SIERRA (Cerca del jugador) ---
-                if (distancia < 4f && rand < 0.6f)
+                // --- ATAQUE SIERRA ---
+                if (rand < 0.3f)
                 {
-                    nMismoAtaque = 0; // Reiniciamos el contador si hace sierra
-                    yield return StartCoroutine(AtaqueSierra());
+                    if (estadoActual == EstadoMarrajo.Sierra)
+                        nMismoAtaque++;
+                    else
+                        nMismoAtaque = 1;
+
+                    // NUNCA dos sierras seguidas tras Fase 1
+                    if (nMismoAtaque > 0 && estadoActual == EstadoMarrajo.Sierra)
+                    {
+                        nMismoAtaque = 1;
+                        yield return StartCoroutine(AtaqueEmbestidaLarga());
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(AtaqueSierra());
+                    }
                 }
                 // --- EMBESTIDA EXPLOSIVA ---
-                else if (rand < 0.4f)
+                else if (rand < 0.6f)
                 {
                     if (estadoActual == EstadoMarrajo.EmbestidaExplosivo)
                         nMismoAtaque++;
                     else 
                         nMismoAtaque = 1;
 
-                    // Si se ha repetido demasiado, forzamos la Embestida Larga
-                    if (nMismoAtaque > 2)
+                    // Máximo se repite 1 vez
+                    if (nMismoAtaque > 1)
                     {
                         nMismoAtaque = 1;
                         yield return StartCoroutine(AtaqueEmbestidaLarga());
@@ -193,8 +211,8 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
                     else 
                         nMismoAtaque = 1;
 
-                    // Si se ha repetido demasiado, forzamos la Embestida Explosiva
-                    if (nMismoAtaque > 2)
+                    // Máximo se repite 1 vez
+                    if (nMismoAtaque > 1)
                     {
                         nMismoAtaque = 1;
                         yield return StartCoroutine(AtaqueEmbestidaexplosiva());
@@ -205,12 +223,68 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
                     }
                 }
             }
-            else if (faseActual == 3)
+            else if (faseActual == 3) // FASE TRES <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
             {
-                yield return null;
+                // --- ATAQUE SIERRA ---
+                if (rand < 0.3f)
+                {
+                    if (estadoActual == EstadoMarrajo.Sierra)
+                        nMismoAtaque++;
+                    else
+                        nMismoAtaque = 1;
+
+                    // NUNCA dos sierras seguidas tras Fase 1
+                    if (nMismoAtaque > 0 && estadoActual == EstadoMarrajo.Sierra)
+                    {
+                        nMismoAtaque = 1;
+                        yield return StartCoroutine(AtaqueEmbestidaexplosiva());
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(AtaqueSierra());
+                    }
+                }
+                // --- EMBESTIDA EXPLOSIVA ---
+                else if (rand < 0.6f)
+                {
+                    if (estadoActual == EstadoMarrajo.EmbestidaExplosivo)
+                        nMismoAtaque++;
+                    else 
+                        nMismoAtaque = 1;
+
+                    // Máximo se repite 1 vez
+                    if (nMismoAtaque > 1)
+                    {
+                        nMismoAtaque = 1;
+                        yield return StartCoroutine(AtaqueEmbestidaLarga());
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(AtaqueEmbestidaexplosiva());
+                    }
+                }
+                // --- EMBESTIDA LARGA ---
+                else
+                {
+                    if (estadoActual == EstadoMarrajo.EmbestidaLarga)
+                        nMismoAtaque++;
+                    else 
+                        nMismoAtaque = 1;
+
+                    // Máximo se repite 1 vez
+                    if (nMismoAtaque > 1)
+                    {
+                        nMismoAtaque = 1;
+                        yield return StartCoroutine(AtaqueEmbestidaexplosiva());
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(AtaqueEmbestidaLarga());
+                    }
+                }
             }
 
-            // Pequeña pausa entre decisiones de la IA para dar un respiro visual
+            // Pausa entre decisiones
             yield return new WaitForSeconds(0.2f);
         }
 
@@ -244,88 +318,122 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
 
     private IEnumerator AtaqueSierra()
     {
-        if (faseActual == 1) 
+        estadoActual = EstadoMarrajo.Sierra;
+        if (faseActual > 1) StartCoroutine(SpawnearCirculosExplosivos());
+        yield return new WaitForSeconds(0.6f);
+        
+        if (hitboxSierra != null) hitboxSierra.SetActive(true);
+
+        float T = 0f;
+        while (T < tiempoSierra)
         {
-            estadoActual = EstadoMarrajo.Sierra;
-            yield return new WaitForSeconds(0.6f);
-            
-            if (hitboxSierra != null) hitboxSierra.SetActive(true);
+            transform.Rotate(0f, 0f, velocidadRotacionSierra * Time.deltaTime);
+            T += Time.deltaTime;
+            yield return null;
+        }
 
-            float T = 0f;
-            while (T < tiempoSierra)
-            {
-                transform.Rotate(0f, 0f, velocidadRotacionSierra * Time.deltaTime);
-                T += Time.deltaTime;
-                yield return null;
-            }
+        transform.rotation = Quaternion.identity;
+        if (hitboxSierra != null) hitboxSierra.SetActive(false);
+        // nada q ver pero sabeis me raya mazo q en c# pongan la llave debajo yo no hago eso nunca pero me lo hace automatico y si lo pusiera como lo pongo yo siempre estaria mezclado y eso seria peor asi q terribles destinos esperan a los malparados
+    }
 
-            transform.rotation = Quaternion.identity;
-            if (hitboxSierra != null) hitboxSierra.SetActive(false);
-        } else if (faseActual == 2)
+    private IEnumerator SpawnearCirculosExplosivos()
+    {
+        float intervalo = tiempoSierra / cantidadCirculosSierra;
+        Camera cam = Camera.main;
+
+        if (cam != null)
         {
-            // nada q ver pero sabeis me raya mazo q en c# pongan la llave debajo yo no hago eso nunca pero me lo hace automatico y si lo pusiera como lo pongo yo siempre estaria mezclado y eso seria peor asi q terribles destinos esperan a los malparados
+            // 1. Calculamos los límites visibles de la cámara
+            float altoCamara = cam.orthographicSize;
+            float anchoCamara = altoCamara * cam.aspect;
+            Vector3 centroCamara = cam.transform.position;
 
-            estadoActual = EstadoMarrajo.Sierra;
-            yield return new WaitForSeconds(0.6f);
-            
-            if (hitboxSierra != null) hitboxSierra.SetActive(true);
+            // Margen de seguridad para que el radio del círculo no sobresalga del borde de la pantalla
+            float margen = 1.5f; 
 
-            float T = 0f;
-            while (T < tiempoSierra)
+            float minX = centroCamara.x - anchoCamara + margen;
+            float maxX = centroCamara.x + anchoCamara - margen;
+            float minY = centroCamara.y - altoCamara + margen;
+            float maxY = centroCamara.y + altoCamara - margen;
+
+            // 2. Generamos los círculos dentro de esos límites
+            for (int i = 0; i < cantidadCirculosSierra; i++)
             {
-                transform.Rotate(0f, 0f, velocidadRotacionSierra * Time.deltaTime);
-                T += Time.deltaTime;
-                yield return null;
-            }
+                if (prefabCirculoExplosivo != null)
+                {
+                    Vector3 posSpawn;
 
-            transform.rotation = Quaternion.identity;
-            if (hitboxSierra != null) hitboxSierra.SetActive(false);
+                    // El 50% persigue la posición del jugador (limitado a la cámara)
+                    if (UnityEngine.Random.value < 0.3f)
+                    {
+                        Vector3 posJugador = jugador.position + (Vector3)(UnityEngine.Random.insideUnitSphere * 10f);
+                        posSpawn = new Vector3(
+                            Mathf.Clamp(posJugador.x, minX, maxX),
+                            Mathf.Clamp(posJugador.y, minY, maxY),
+                            0f
+                        );
+                    }
+                    else
+                    {
+                        // El otro 50% en una posición totalmente aleatoria dentro de la vista de la cámara
+                        posSpawn = new Vector3(
+                            UnityEngine.Random.Range(minX, maxX),
+                            UnityEngine.Random.Range(minY, maxY),
+                            0f
+                        );
+                    }
+
+                    Instantiate(prefabCirculoExplosivo, posSpawn, Quaternion.identity);
+                }
+
+                yield return new WaitForSeconds(intervalo);
+            }
         }
     }
 
     private IEnumerator AtaqueEmbestidaexplosiva()
     {
-        if (faseActual == 1)
+        estadoActual = EstadoMarrajo.EmbestidaExplosivo;
+        haChocadoPared = false;
+
+        Vector2 direccion = (jugador.position - transform.position).normalized;
+        GirarSprite(direccion);
+
+        if (lineaTelegrafiado != null)
         {
-            estadoActual = EstadoMarrajo.EmbestidaExplosivo;
-            haChocadoPared = false;
+            lineaTelegrafiado.enabled = true;
+            lineaTelegrafiado.SetPosition(0, transform.position);
+            lineaTelegrafiado.SetPosition(1, (Vector2)transform.position + (direccion * 16f));
+        }
+        yield return new WaitForSeconds(0.4f);
+        if (lineaTelegrafiado != null) lineaTelegrafiado.enabled = false;
+        if (hitboxBoca != null) hitboxBoca.SetActive(true);
 
-            Vector2 direccion = (jugador.position - transform.position).normalized;
-            GirarSprite(direccion);
+        StartCoroutine(ImagenesResiduales());
 
-            if (lineaTelegrafiado != null)
-            {
-                lineaTelegrafiado.enabled = true;
-                lineaTelegrafiado.SetPosition(0, transform.position);
-                lineaTelegrafiado.SetPosition(1, (Vector2)transform.position + (direccion * 8f));
-            }
-            yield return new WaitForSeconds(0.4f);
-            if (lineaTelegrafiado != null) lineaTelegrafiado.enabled = false;
+        rb.linearVelocity = direccion * velocidadEmbestidaExplosiva;
+        if (colisionPared != null) colisionPared.SetActive(true);
 
-            StartCoroutine(ImagenesResiduales());
+        // Avance con temporizador de seguridad por si no toca pared
+        float tMax = 1.2f;
+        float t = 0f;
+        while (!haChocadoPared && t < tMax)
+        {
+            t += Time.deltaTime;
+            yield return null;
+        }
 
-            rb.linearVelocity = direccion * velocidadEmbestidaExplosiva;
-            if (colisionPared != null) colisionPared.SetActive(true);
-
-            // Avance con temporizador de seguridad por si no toca pared
-            float tMax = 1.2f;
-            float t = 0f;
-            while (!haChocadoPared && t < tMax)
-            {
-                t += Time.deltaTime;
-                yield return null;
-            }
-
-            if (!haChocadoPared)
-            {
-                rb.linearVelocity = Vector2.zero;
-                if (colisionPared != null) colisionPared.SetActive(false);
-            }
-            else
-            {
-                // Si choco, esperamos a que el Stun de OnTriggerEnter2D termine
-                while (enStun) yield return null;
-            }
+        if (!haChocadoPared)
+        {
+            rb.linearVelocity = Vector2.zero;
+            if (colisionPared != null) colisionPared.SetActive(false);
+            if (hitboxBoca != null) hitboxBoca.SetActive(false);
+        }
+        else
+        {
+            // Si choco, esperamos a que el Stun de OnTriggerEnter2D termine
+            while (enStun) yield return null;
         }
     }
 
@@ -354,11 +462,12 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
             {
                 lineaTelegrafiado.enabled = true;
                 lineaTelegrafiado.SetPosition(0, transform.position);
-                lineaTelegrafiado.SetPosition(1, (Vector2)transform.position + (dirEmbestida * 40f));
+                lineaTelegrafiado.SetPosition(1, (Vector2)transform.position + (dirEmbestida * 30f));
             }
 
             yield return new WaitForSeconds(0.4f);
             if (lineaTelegrafiado != null) lineaTelegrafiado.enabled = false;
+            if (hitboxBoca != null) hitboxBoca.SetActive(true);
 
             StartCoroutine(ImagenesResiduales());
 
@@ -399,6 +508,7 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
                 {
                     while (enStun) yield return null;
                 }
+                if (hitboxBoca != null) hitboxBoca.SetActive(false);
             }
         }
     }
@@ -498,6 +608,13 @@ public class BossMako : MonoBehaviour, IVidaBoss, IBoss
         muerteNotificada = true;
         Debug.Log("El Boss Marrajo ha sido derrotado.");
         OnBossMuerto?.Invoke();
+        foreach (MiniMako hijo in Hijos)
+        {
+            if (hijo != null)
+            {
+                Destroy(hijo.gameObject);
+            }
+        }
         Destroy(gameObject);
     }
 }
